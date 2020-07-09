@@ -86,3 +86,11 @@ stages:
           Contents: |
             Tailspin.SpaceGame.Database/bin/**/*.dacpac
           TargetFolder: '$(Build.StagingDirectory)'
+      - script: 'echo $(Build.ArtifactStagingDirectory)'
+        displayName: 'Path staging build artifact'
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact'
+        inputs:
+          ArtifactName: dropDacpac
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        condition: succeededOrFailed()
