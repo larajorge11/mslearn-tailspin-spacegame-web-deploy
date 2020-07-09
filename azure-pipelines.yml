@@ -1,5 +1,5 @@
 trigger:
-- '*'
+- 'database'
 
 variables:
   buildConfiguration: 'Release'
@@ -64,3 +64,17 @@ stages:
 
     - publish: '$(Build.ArtifactStagingDirectory)'
       artifact: drop
+  - job: BuildDacpac
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore Project Dependencies'
+        inputs:
+          command: restore
+          projects: '**/*.csproj'
+      - task: VSBuild@1
+        displayName: 'Build DB Project'
+        inputs:
+          solution: '**\*.sqlproj'
+          
