@@ -94,3 +94,27 @@ stages:
           ArtifactName: dropDacpac
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         condition: succeededOrFailed()
+- stage: 'Dev'
+  displayName: 'Deploy to the dev environment'
+  dependsOn: Build
+  jobs:
+    - deployment: Deploy
+      pool:
+        vmImage: 'ubuntu-18.04'
+      environment: dev
+      variables:
+      - group: Release
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - download: current
+                artifact: drop
+              - task: AzureWebApp@1
+                displayName: 'Azure App Service deploy: website'
+                inputs:
+                  azureSubscription: 'Resource Manager - Tailspin - Space Game'
+                  appType: 'webApp'
+                  appName: '$(WebAppNameDev)'
+                  package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+                  deploymentMethod: 'zipDeploy'
