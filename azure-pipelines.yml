@@ -118,3 +118,11 @@ stages:
                   appName: '$(WebAppNameDev)'
                   package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
                   deploymentMethod: 'zipDeploy'
+              - task: AzureRmWebAppDeployment@4
+                inputs:
+                  ConnectionType: 'AzureRM'
+                  azureSubscription: 'Resource Manager - Tailspin - Space Game'
+                  appType: 'webApp'
+                  WebAppName: 'tailspin-space-game-web-dev-6918'
+                  VirtualApplication: 'test'
+                  packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
