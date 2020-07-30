@@ -1,5 +1,5 @@
 trigger:
-- 'database'
+- '*'
 
 variables:
   buildConfiguration: 'Release'
@@ -17,7 +17,7 @@ stages:
 
     variables:
       wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
-      dotnetSdkVersion: '3.1.301'
+      dotnetSdkVersion: '3.1.300'
 
     steps:
     - task: UseDotNet@2
@@ -65,7 +65,7 @@ stages:
     - publish: '$(Build.ArtifactStagingDirectory)'
       artifact: drop
 
-- job: BuildDacpac
+  - job: BuildDacpac
     pool:
       vmImage: 'windows-2019'
     steps:
@@ -167,31 +167,67 @@ stages:
   displayName: 'Deploy to the dev environment'
   dependsOn: DBAVerificationApply
   jobs:
-    - deployment: Deploy
-      pool:
-        vmImage: 'ubuntu-18.04'
-      environment: dev
-      variables:
-      - group: Release
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - download: current
-                artifact: drop
-              - task: AzureWebApp@1
-                displayName: 'Azure App Service deploy: website'
-                inputs:
-                  azureSubscription: 'Resource Manager - Tailspin - Space Game'
-                  appType: 'webApp'
-                  appName: '$(WebAppNameDev)'
-                  package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
-                  deploymentMethod: 'zipDeploy'
-              - task: AzureRmWebAppDeployment@4
-                inputs:
-                  ConnectionType: 'AzureRM'
-                  azureSubscription: 'TailSpin-DB'
-                  appType: 'webApp'
-                  WebAppName: 'tailspin-space-game-web-dev-6918'
-                  VirtualApplication: 'test'
-                  packageForLinux: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-18.04'
+    environment: dev
+    variables:
+    - group: Release
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(WebAppNameDev)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
+- stage: 'Test'
+  displayName: 'Deploy to the test environment'
+  dependsOn: Dev
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-18.04'
+    environment: test
+    variables:
+    - group: 'Release'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(WebAppNameTest)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
+- stage: 'Staging'
+  displayName: 'Deploy to the staging environment'
+  dependsOn: Test
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-18.04'
+    environment: staging
+    variables:
+    - group: 'Release'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(WebAppNameStaging)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
