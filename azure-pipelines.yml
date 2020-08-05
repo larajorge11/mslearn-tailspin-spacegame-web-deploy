@@ -29,7 +29,8 @@ stages:
       inputs:
         targetType: inline
         script: |
-          Write-Host "$(Build.SourceBranchName)"
+          Write-Host "Build.SourceBranchName > $(Build.SourceBranchName)"
+          Write-Host "Build.SourceBranch > $(Build.SourceBranch)"
         
 
     # - task: Npm@1
