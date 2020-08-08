@@ -20,6 +20,11 @@ stages:
       dotnetSdkVersion: '3.1.300'
 
     steps:
+    
+    - task: GitVersion@5
+      displayName: GitVersion
+      inputs:
+        preferBundledVersion: false
     - task: UseDotNet@2
       displayName: 'Use .NET Core SDK $(dotnetSdkVersion)'
       inputs:
@@ -51,29 +56,47 @@ stages:
       displayName: 'Restore project dependencies'
       inputs:
         command: 'restore'
+        includeNuGetOrg: false
+        versioningScheme: byBuildNumber
         projects: '**/*.csproj'
 
     - task: DotNetCoreCLI@2
       displayName: 'Build the project - $(buildConfiguration)'
       inputs:
         command: 'build'
-        arguments: '--no-restore --configuration $(buildConfiguration)'
+        arguments: '--no-restore --configuration $(buildConfiguration) /p:Version=$(GitVersion.NuGetVersion)'
+        versioningScheme: byBuildNumber
         projects: '**/*.csproj'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: pack
+        packagesToPack: '$(Parameters.projects)'
+        nobuild: true
+        versioningScheme: byEnvVar
+        versionEnvVar: GitVersion.NuGetVersion
     
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'push'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: '440849e0-a5b9-499b-81a0-0a3f9a099734/14b50f31-fedb-4fa1-abca-f2a18569f01c'
+        versioningScheme: byBuildNumber
+
     # - task: Security static source code analysis@2019
     
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish the project - $(buildConfiguration)'
-      inputs:
-        command: 'publish'
-        projects: '**/*.csproj'
-        publishWebProjects: false
-        arguments: '--no-build --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(buildConfiguration)'
-        zipAfterPublish: true
+    # - task: DotNetCoreCLI@2
+    #   displayName: 'Publish the project - $(buildConfiguration)'
+    #   inputs:
+    #     command: 'publish'
+    #     projects: '**/*.csproj'
+    #     publishWebProjects: false
+    #     arguments: '--no-build --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(buildConfiguration)'
+    #     zipAfterPublish: true
 
-    - publish: '$(Build.ArtifactStagingDirectory)'
-      artifact: drop
+    # - publish: '$(Build.ArtifactStagingDirectory)'
+    #   artifact: drop
 
 # - stage: 'Deploy'
 #   displayName: 'Deploy the web application'
