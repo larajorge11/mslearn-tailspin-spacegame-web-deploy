@@ -69,7 +69,7 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: pack
-        packagesToPack: '$(Parameters.projects)'
+        packagesToPack: '**/*.csproj'
         nobuild: true
         versioningScheme: byEnvVar
         versionEnvVar: GitVersion.NuGetVersion
