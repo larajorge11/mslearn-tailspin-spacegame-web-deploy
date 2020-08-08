@@ -52,13 +52,13 @@ stages:
       displayName: 'Write build info'
       workingDirectory: $(wwwrootDir)
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Restore project dependencies'
-      inputs:
-        command: 'restore'
-        includeNuGetOrg: false
-        versioningScheme: byBuildNumber
-        projects: '**/*.csproj'
+    # - task: DotNetCoreCLI@2
+    #   displayName: 'Restore project dependencies'
+    #   inputs:
+    #     command: 'restore'
+    #     includeNuGetOrg: false
+    #     versioningScheme: byBuildNumber
+    #     projects: '**/*.csproj'
 
     - task: DotNetCoreCLI@2
       displayName: 'Build the project - $(buildConfiguration)'
